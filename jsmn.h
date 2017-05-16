@@ -33,17 +33,30 @@ enum jsmnerr {
 
 /**
  * JSON token description.
- * type		type (object, array, string etc.)
+ * type	type (object, array, string etc.)
  * start	start position in JSON data string
  * end		end position in JSON data string
+ * size	number of child nodes, if any
+ *
+ * Optional fields need to be enabled with compile-time options:
+ * parent	point to the parent node, if any
+ * value	for JSMN_OBJECT keys, point to associate value
+ * next	next sibling, if any
+ * first_child	for JSMN_OBJECT and JSMN_ARRAY, first child node (if any)
+ * last_child	last child node
  */
 typedef struct {
 	jsmntype_t type;
 	int start;
 	int end;
 	int size;
-#ifdef JSMN_PARENT_LINKS
+#if defined(JSMN_PARENT_LINKS) || defined(JSMN_ITERATORS)
 	int parent;
+#endif
+#if defined(JSMN_ITERATORS)
+	int next;
+	int first_child;
+	int last_child;
 #endif
 } jsmntok_t;
 
@@ -63,7 +76,7 @@ typedef struct {
 void jsmn_init(jsmn_parser *parser);
 
 /**
- * Run JSON parser. It parses a JSON data string into and array of tokens, each describing
+ * Run JSON parser. It parses a JSON data string into an array of tokens, each describing
  * a single JSON object.
  */
 int jsmn_parse(jsmn_parser *parser, const char *js, size_t len,
